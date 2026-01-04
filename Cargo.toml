@@ -1,7 +1,9 @@
 [package]
 name = "ketzal"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+
 [lib]
 name = "ketzal"
+
 [dependencies]
