@@ -28,7 +28,7 @@ impl std::fmt::Display for RequestError {
 
 impl std::error::Error for RequestError {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Request {
     pub method: Method,
     pub path: String,
