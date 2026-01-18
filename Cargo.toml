@@ -13,5 +13,6 @@ regex = "1.10"
 urlencoding = "2.1"
 url = "2.0"
 ratatui = "0.30.0"
+chrono = { version = "0.4", features = ["serde"] }
 lazy_static = "1.5.0"
 ctor = "0.6.3"

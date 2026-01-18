@@ -1,10 +1,14 @@
-use std::io::{Read, Write};
-use std::net::TcpListener;
+use std::net::{TcpListener, TcpStream};
+use std::thread;
 
 use crate::kernel::config::server::ServerConfig;
+use crate::infrastructure::http::method::Method;
+use crate::infrastructure::http::request::request::Request;
 use crate::infrastructure::http::response::response::Response;
-use crate::infrastructure::http::routes::REGISTRY;
-use crate::infrastructure::http::server::parser::parse_request;
+use crate::infrastructure::http::server::dispatcher::dispatch_request;
+use crate::infrastructure::http::server::logger::log_request;
+use crate::infrastructure::http::server::parser::parse_request_dynamic;
+use crate::infrastructure::http::server::writer::write_response;
 
 pub fn run(config: ServerConfig) {
     let addr = config.addr();
@@ -15,42 +19,35 @@ pub fn run(config: ServerConfig) {
     println!("🚀 Server running on http://{}", addr);
 
     for stream in listener.incoming() {
-        let mut stream = match stream {
+        let stream = match stream {
             Ok(s) => s,
-            Err(_) => continue,
-        };
-
-        let mut buffer = [0; 4096];
-        let len = match stream.read(&mut buffer) {
-            Ok(len) => len,
-            Err(_) => continue,
-        };
-
-        let response = match parse_request(&buffer[..len]) {
-            Ok(request) => {
-                let registry = REGISTRY
-                    .lock()
-                    .expect("Route registry poisoned");
-
-                match registry.get_routes().iter().find(|route| {
-                    route.method == request.method
-                        && route.path == request.path
-                }) {
-                    Some(route) => (route.handler)(request),
-                    None => Response::not_found(),
-                }
+            Err(e) => {
+                eprintln!("Connection error: {}", e);
+                continue;
             }
-            Err(err) => Response::bad_request(
-                format!("Bad Request: {}", err)
-            ),
         };
 
-        let http = response.to_http_string();
+        thread::spawn(move || {
+            handle_connection(stream);
+        });
+    }
+}
+fn handle_connection(mut stream: TcpStream) {
+    let client_addr = stream.peer_addr()
+        .map(|a| a.to_string())
+        .unwrap_or_else(|_| "unknown".to_string());
 
-        if let Err(err) = stream.write_all(http.as_bytes()) {
-            eprintln!("Write error: {}", err);
+    match parse_request_dynamic(&mut stream) {
+        Ok(mut request) => {
+            let response = dispatch_request(&mut request);
+            log_request(&request, &client_addr, response.status,);
+            let _ = write_response(&mut stream, &response);
         }
-
-        let _ = stream.flush();
+        Err(e) => {
+            eprintln!("Parse error: {}", e);
+            let response = Response::bad_request(format!("Bad Request: {}", e));
+            log_request(&Request::new(Method::GET, "/".to_string()), &client_addr, response.status);
+            let _ = write_response(&mut stream, &response);
+        }
     }
 }
