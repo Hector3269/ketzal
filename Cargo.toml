@@ -1,7 +1,11 @@
 [package]
 name = "ketzal"
+description=" ketzal"
 version = "0.1.0"
 edition = "2021"
+readme = "README.md"
+license-file = "LICENSE"
+authors = ["Hector3269"]
 
 [lib]
 name = "ketzal"
