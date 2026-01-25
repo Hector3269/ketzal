@@ -1,41 +1,38 @@
-use std::collections::HashMap;
-
+use crate::infrastructure::http::middleware::MiddlewareFuture;
 use crate::infrastructure::http::request::request::Request;
 use crate::infrastructure::http::response::response::Response;
 use crate::infrastructure::http::routes::REGISTRY;
 
-pub fn dispatch_request(request: &mut Request) -> Response {
-    let registry = REGISTRY
-        .lock()
-        .expect("Route registry poisoned");
+pub async fn dispatch_request(request: &mut Request) -> Response {
+    let matched = {
+        let registry = REGISTRY.lock().unwrap();
+        registry.match_route(&request.path, request.method)
+    };
 
-    for route in registry.get_routes() {
-        if route.method == request.method {
-            if let Some(params) = match_route(&route.path, &request.path) {
-                request.params = params;
-                return (route.handler)(request.clone());
-            }
+    let mut response = if let Some((handler, middlewares, params)) = matched {
+        request.params = params;
+
+        // Build the middleware chain (Onion pattern)
+        let mut current_handler: Box<dyn FnOnce(Request) -> MiddlewareFuture + Send> =
+            Box::new(move |req| (handler)(req));
+
+        for mw in middlewares.into_iter().rev() {
+            let next = current_handler;
+            let mw_captured = mw.clone();
+            current_handler = Box::new(move |req| mw_captured.handle(req, next));
+        }
+
+        current_handler(request.clone()).await
+    } else {
+        Response::not_found()
+    };
+
+    // Compress if client accepts gzip
+    if let Some(accept_encoding) = request.header("Accept-Encoding") {
+        if accept_encoding.contains("gzip") {
+            response = response.compress_gzip();
         }
     }
-    Response::not_found()
-}
 
-fn match_route(route_path: &str, request_path: &str) -> Option<HashMap<String, String>> {
-    let route_segments: Vec<&str> = route_path.split('/').filter(|s| !s.is_empty()).collect();
-    let request_segments: Vec<&str> = request_path.split('/').filter(|s| !s.is_empty()).collect();
-
-    if route_segments.len() != request_segments.len() {
-        return None;
-    }
-
-    let mut params = HashMap::new();
-    for (route_seg, req_seg) in route_segments.iter().zip(request_segments.iter()) {
-        if route_seg.starts_with('{') && route_seg.ends_with('}') {
-            let param_name = &route_seg[1..route_seg.len() - 1];
-            params.insert(param_name.to_string(), req_seg.to_string());
-        } else if route_seg != req_seg {
-            return None;
-        }
-    }
-    Some(params)
+    response
 }

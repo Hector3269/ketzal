@@ -1,5 +1,7 @@
-use std::collections::HashMap;
+use flate2::{write::GzEncoder, Compression};
 use serde_json::Value;
+use std::collections::HashMap;
+use std::io::Write;
 
 #[derive(Debug, Clone)]
 pub struct Response {
@@ -11,7 +13,10 @@ pub struct Response {
 impl Response {
     pub fn new(status: u16, body: String) -> Self {
         let mut headers = HashMap::new();
-        headers.insert("Content-Type".to_string(), "text/html; charset=utf-8".to_string());
+        headers.insert(
+            "Content-Type".to_string(),
+            "text/html; charset=utf-8".to_string(),
+        );
 
         Self {
             status,
@@ -27,13 +32,17 @@ impl Response {
 
     pub fn json(data: Value) -> Self {
         let mut response = Self::new(200, data.to_string());
-        response.headers.insert("Content-Type".to_string(), "application/json".to_string());
+        response
+            .headers
+            .insert("Content-Type".to_string(), "application/json".to_string());
         response
     }
 
     pub fn created(data: Value) -> Self {
         let mut response = Self::new(201, data.to_string());
-        response.headers.insert("Content-Type".to_string(), "application/json".to_string());
+        response
+            .headers
+            .insert("Content-Type".to_string(), "application/json".to_string());
         response
     }
 
@@ -43,7 +52,9 @@ impl Response {
             "errors": errors
         });
         let mut response = Self::new(422, json.to_string());
-        response.headers.insert("Content-Type".to_string(), "application/json".to_string());
+        response
+            .headers
+            .insert("Content-Type".to_string(), "application/json".to_string());
         response
     }
 
@@ -60,6 +71,19 @@ impl Response {
         response.push_str(&self.body);
 
         response
+    }
+
+    pub fn compress_gzip(mut self) -> Self {
+        if self.body.len() > 1024 {
+            // Only compress if body > 1KB
+            let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+            encoder.write_all(self.body.as_bytes()).unwrap();
+            let compressed = encoder.finish().unwrap();
+            self.body = String::from_utf8_lossy(&compressed).to_string();
+            self.headers
+                .insert("Content-Encoding".to_string(), "gzip".to_string());
+        }
+        self
     }
 
     pub fn status_text(code: u16) -> &'static str {
@@ -170,7 +194,9 @@ impl Response {
 
     pub fn unprocessable_entity(body: String) -> Self {
         let mut response = Self::new(422, body);
-        response.headers.insert("Content-Type".to_string(), "application/json".to_string());
+        response
+            .headers
+            .insert("Content-Type".to_string(), "application/json".to_string());
         response
     }
 
@@ -180,13 +206,31 @@ impl Response {
 
     pub fn internal_server_error_json(data: Value) -> Self {
         let mut response = Self::new(500, data.to_string());
-        response.headers.insert("Content-Type".to_string(), "application/json".to_string());
+        response
+            .headers
+            .insert("Content-Type".to_string(), "application/json".to_string());
         response
     }
 
     pub fn redirect(status: u16, location: &str) -> Self {
         let mut response = Self::new(status, "".to_string());
-        response.headers.insert("Location".to_string(), location.to_string());
+        response
+            .headers
+            .insert("Location".to_string(), location.to_string());
+        response
+    }
+
+    pub fn sse() -> Self {
+        let mut response = Self::new(200, "".to_string());
+        response
+            .headers
+            .insert("Content-Type".to_string(), "text/event-stream".to_string());
+        response
+            .headers
+            .insert("Cache-Control".to_string(), "no-cache".to_string());
+        response
+            .headers
+            .insert("Connection".to_string(), "keep-alive".to_string());
         response
     }
 }

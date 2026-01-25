@@ -1,3 +1,4 @@
+#[cfg(feature = "web")]
 #[macro_export]
 macro_rules! routes_web {
     ($($route:expr);* $(;)?) => {
@@ -15,7 +16,7 @@ macro_rules! routes_web {
         }
     };
 }
-
+#[cfg(feature = "api")]
 #[macro_export]
 macro_rules! routes_api {
     ($($route:expr);* $(;)?) => {

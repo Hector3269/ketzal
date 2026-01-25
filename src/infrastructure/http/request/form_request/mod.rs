@@ -1,4 +1,5 @@
 pub mod errors;
+pub mod form_request_macro;
 pub mod traits;
 pub mod validate_rules;
 pub mod validator;
