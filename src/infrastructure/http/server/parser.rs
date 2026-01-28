@@ -5,6 +5,12 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
 use tokio::net::tcp::OwnedReadHalf;
+use crate::kernel::constants::{
+    headers::{CONTENT_LENGTH, CONTENT_TYPE},
+    limits::STREAMING_THRESHOLD_BYTES,
+    protocol::CRLF,
+    multipart::BOUNDARY_PARAM
+};
 
 pub fn parse_request(buffer: &[u8]) -> Result<Request, Box<dyn std::error::Error>> {
     let request_str = std::str::from_utf8(buffer)?;
@@ -56,11 +62,11 @@ pub fn parse_request(buffer: &[u8]) -> Result<Request, Box<dyn std::error::Error
 
     // Body: the rest
     let body_start = request_str
-        .find("\r\n\r\n")
+        .find(&format!("{}{}", CRLF, CRLF))
         .map(|p| p + 4)
         .unwrap_or(request_str.len());
     let content_length = headers
-        .get("Content-Length")
+        .get(CONTENT_LENGTH)
         .and_then(|s| s.parse::<usize>().ok())
         .unwrap_or(0);
     let body_bytes =
@@ -137,11 +143,11 @@ pub async fn parse_request_dynamic(
 
     // Body handling
     let content_length = headers
-        .get("Content-Length")
+        .get(CONTENT_LENGTH)
         .and_then(|s| s.parse::<u64>().ok())
         .unwrap_or(0);
 
-    let threshold = 16 * 1024; // 16KB
+    let threshold = STREAMING_THRESHOLD_BYTES as u64;
 
     let mut request = Request::new(method, path);
     request.headers = headers;
@@ -156,9 +162,9 @@ pub async fn parse_request_dynamic(
         reader.read_exact(&mut body).await?;
 
         if request.is_multipart() {
-            if let Some(ct) = request.header("Content-Type") {
-                if let Some(boundary_pos) = ct.find("boundary=") {
-                    let boundary = &ct[boundary_pos + 9..];
+            if let Some(ct) = request.header(CONTENT_TYPE) {
+                if let Some(boundary_pos) = ct.find(BOUNDARY_PARAM) {
+                    let boundary = &ct[boundary_pos + BOUNDARY_PARAM.len()..];
                     let (_form_data, files) = MultipartParser::parse(&body, boundary);
                     request.files = files;
                 }

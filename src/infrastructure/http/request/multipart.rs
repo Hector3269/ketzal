@@ -1,5 +1,9 @@
 use super::request::UploadedFile;
 use std::collections::HashMap;
+use crate::kernel::constants::{
+    multipart::{BOUNDARY_PREFIX, CONTENT_DISPOSITION, CONTENT_TYPE_HEADER, NAME_PARAM, FILENAME_PARAM, DEFAULT_CONTENT_TYPE},
+    protocol::CRLF
+};
 
 pub struct MultipartParser;
 
@@ -11,8 +15,8 @@ impl MultipartParser {
         let mut form_data = HashMap::new();
         let mut files = HashMap::new();
 
-        let boundary_bytes = format!("--{}", boundary).into_bytes();
-        let end_boundary_bytes = format!("--{}--", boundary).into_bytes();
+        let boundary_bytes = format!("{}{}", BOUNDARY_PREFIX, boundary).into_bytes();
+        let end_boundary_bytes = format!("{}{}{}", BOUNDARY_PREFIX, boundary, BOUNDARY_PREFIX).into_bytes();
 
         let mut parts = Vec::new();
         let mut current_pos = 0;
@@ -44,36 +48,36 @@ impl MultipartParser {
 
             // Trim leading \r\n
             let mut part = part;
-            if part.starts_with(b"\r\n") {
+            if part.starts_with(CRLF.as_bytes()) {
                 part = &part[2..];
             }
 
             // Split into headers and body
-            if let Some(header_end) = Self::find_subsequence(part, b"\r\n\r\n") {
+            if let Some(header_end) = Self::find_subsequence(part, format!("{}{}", CRLF, CRLF).as_bytes()) {
                 let headers_raw = &part[..header_end];
                 let content = &part[header_end + 4..];
 
                 // Trim trailing \r\n from content
                 let mut final_content = content;
-                if final_content.ends_with(b"\r\n") {
+                if final_content.ends_with(CRLF.as_bytes()) {
                     final_content = &final_content[..final_content.len() - 2];
                 }
 
                 let headers_str = String::from_utf8_lossy(headers_raw);
                 let mut name = String::new();
                 let mut filename = None;
-                let mut content_type = "text/plain".to_string();
+                let mut content_type = DEFAULT_CONTENT_TYPE.to_string();
 
                 for line in headers_str.lines() {
-                    if line.to_lowercase().starts_with("content-disposition:") {
-                        if let Some(n) = Self::capture_between(line, "name=\"", "\"") {
+                    if line.to_lowercase().starts_with(CONTENT_DISPOSITION) {
+                        if let Some(n) = Self::capture_between(line, NAME_PARAM, "\"") {
                             name = n;
                         }
-                        if let Some(f) = Self::capture_between(line, "filename=\"", "\"") {
+                        if let Some(f) = Self::capture_between(line, FILENAME_PARAM, "\"") {
                             filename = Some(f);
                         }
-                    } else if line.to_lowercase().starts_with("content-type:") {
-                        content_type = line["content-type:".len()..].trim().to_string();
+                    } else if line.to_lowercase().starts_with(CONTENT_TYPE_HEADER) {
+                        content_type = line[CONTENT_TYPE_HEADER.len()..].trim().to_string();
                     }
                 }
 

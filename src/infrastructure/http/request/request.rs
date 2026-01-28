@@ -5,6 +5,11 @@ use std::collections::HashMap;
 use std::fmt;
 use std::sync::{Arc, Mutex};
 use tokio::io::AsyncRead;
+use crate::kernel::constants::{
+    headers::{CONTENT_TYPE, AUTHORIZATION, BEARER_PREFIX},
+    content_types::{APPLICATION_JSON, FORM_URLENCODED, MULTIPART_FORM_DATA}
+};
+
 
 #[derive(Debug)]
 pub enum RequestError {
@@ -128,9 +133,9 @@ impl Request {
     }
 
     pub fn bearer_token(&self) -> Option<String> {
-        self.header("Authorization").and_then(|auth| {
-            if auth.starts_with("Bearer ") {
-                Some(auth[7..].to_string())
+        self.header(AUTHORIZATION).and_then(|auth| {
+            if auth.starts_with(BEARER_PREFIX) {
+                Some(auth[BEARER_PREFIX.len()..].to_string())
             } else {
                 None
             }
@@ -165,20 +170,20 @@ impl Request {
     }
 
     pub fn is_json(&self) -> bool {
-        self.header("Content-Type")
-            .map(|ct| ct.contains("application/json"))
+        self.header(CONTENT_TYPE)
+            .map(|ct| ct.contains(APPLICATION_JSON))
             .unwrap_or(false)
     }
 
     pub fn is_form(&self) -> bool {
-        self.header("Content-Type")
-            .map(|ct| ct.contains("application/x-www-form-urlencoded"))
+        self.header(CONTENT_TYPE)
+            .map(|ct| ct.contains(FORM_URLENCODED))
             .unwrap_or(false)
     }
 
     pub fn is_multipart(&self) -> bool {
-        self.header("Content-Type")
-            .map(|ct| ct.contains("multipart/form-data"))
+        self.header(CONTENT_TYPE)
+            .map(|ct| ct.contains(MULTIPART_FORM_DATA))
             .unwrap_or(false)
     }
 

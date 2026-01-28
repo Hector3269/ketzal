@@ -2,6 +2,13 @@ use flate2::{write::GzEncoder, Compression};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::io::Write;
+use crate::kernel::constants::{
+    headers::{CONTENT_TYPE, CONTENT_LENGTH, CONTENT_ENCODING, LOCATION, CACHE_CONTROL, CONNECTION, GZIP_ENCODING, NO_CACHE, KEEP_ALIVE},
+    content_types::{TEXT_HTML, APPLICATION_JSON, TEXT_EVENT_STREAM},
+    limits::GZIP_MIN_SIZE_BYTES,
+    protocol::{HTTP_VERSION_1_1, CRLF, HEADER_SEPARATOR},
+    status_code::reason_phrase
+};
 
 #[derive(Debug, Clone)]
 pub struct Response {
@@ -14,8 +21,8 @@ impl Response {
     pub fn new(status: u16, body: String) -> Self {
         let mut headers = HashMap::new();
         headers.insert(
-            "Content-Type".to_string(),
-            "text/html; charset=utf-8".to_string(),
+            CONTENT_TYPE.to_string(),
+            TEXT_HTML.to_string(),
         );
 
         Self {
@@ -34,7 +41,7 @@ impl Response {
         let mut response = Self::new(200, data.to_string());
         response
             .headers
-            .insert("Content-Type".to_string(), "application/json".to_string());
+            .insert(CONTENT_TYPE.to_string(), APPLICATION_JSON.to_string());
         response
     }
 
@@ -42,7 +49,7 @@ impl Response {
         let mut response = Self::new(201, data.to_string());
         response
             .headers
-            .insert("Content-Type".to_string(), "application/json".to_string());
+            .insert(CONTENT_TYPE.to_string(), APPLICATION_JSON.to_string());
         response
     }
 
@@ -54,111 +61,38 @@ impl Response {
         let mut response = Self::new(422, json.to_string());
         response
             .headers
-            .insert("Content-Type".to_string(), "application/json".to_string());
+            .insert(CONTENT_TYPE.to_string(), APPLICATION_JSON.to_string());
         response
     }
 
     pub fn to_http_string(&self) -> String {
-        let status_text = Self::status_text(self.status);
-        let mut response = format!("HTTP/1.1 {} {}\r\n", self.status, status_text);
+        let status_text = reason_phrase(self.status);
+        let mut response = format!("{} {} {}{}", HTTP_VERSION_1_1, self.status, status_text, CRLF);
 
         for (key, value) in &self.headers {
-            response.push_str(&format!("{}: {}\r\n", key, value));
+            response.push_str(&format!("{}{}{}{}", key, HEADER_SEPARATOR, value, CRLF));
         }
 
-        response.push_str(&format!("Content-Length: {}\r\n", self.body.len()));
-        response.push_str("\r\n");
+        response.push_str(&format!("{}{}{}{}", CONTENT_LENGTH, HEADER_SEPARATOR, self.body.len(), CRLF));
+        response.push_str(CRLF);
         response.push_str(&self.body);
 
         response
     }
 
     pub fn compress_gzip(mut self) -> Self {
-        if self.body.len() > 1024 {
-            // Only compress if body > 1KB
+        if self.body.len() > GZIP_MIN_SIZE_BYTES {
+            // Only compress if body > threshold
             let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
             encoder.write_all(self.body.as_bytes()).unwrap();
             let compressed = encoder.finish().unwrap();
             self.body = String::from_utf8_lossy(&compressed).to_string();
             self.headers
-                .insert("Content-Encoding".to_string(), "gzip".to_string());
+                .insert(CONTENT_ENCODING.to_string(), GZIP_ENCODING.to_string());
         }
         self
     }
 
-    pub fn status_text(code: u16) -> &'static str {
-        match code {
-            // 1xx Informational
-            100 => "Continue",
-            101 => "Switching Protocols",
-            102 => "Processing",
-            103 => "Early Hints",
-            // 2xx Success
-            200 => "OK",
-            201 => "Created",
-            202 => "Accepted",
-            203 => "Non-Authoritative Information",
-            204 => "No Content",
-            205 => "Reset Content",
-            206 => "Partial Content",
-            207 => "Multi-Status",
-            208 => "Already Reported",
-            226 => "IM Used",
-            // 3xx Redirection
-            300 => "Multiple Choices",
-            301 => "Moved Permanently",
-            302 => "Found",
-            303 => "See Other",
-            304 => "Not Modified",
-            305 => "Use Proxy",
-            306 => "(Unused)",
-            307 => "Temporary Redirect",
-            308 => "Permanent Redirect",
-            // 4xx Client Error
-            400 => "Bad Request",
-            401 => "Unauthorized",
-            402 => "Payment Required",
-            403 => "Forbidden",
-            404 => "Not Found",
-            405 => "Method Not Allowed",
-            406 => "Not Acceptable",
-            407 => "Proxy Authentication Required",
-            408 => "Request Timeout",
-            409 => "Conflict",
-            410 => "Gone",
-            411 => "Length Required",
-            412 => "Precondition Failed",
-            413 => "Payload Too Large",
-            414 => "URI Too Long",
-            415 => "Unsupported Media Type",
-            416 => "Range Not Satisfiable",
-            417 => "Expectation Failed",
-            418 => "I'm a teapot",
-            421 => "Misdirected Request",
-            422 => "Unprocessable Entity",
-            423 => "Locked",
-            424 => "Failed Dependency",
-            425 => "Too Early",
-            426 => "Upgrade Required",
-            428 => "Precondition Required",
-            429 => "Too Many Requests",
-            431 => "Request Header Fields Too Large",
-            451 => "Unavailable For Legal Reasons",
-            // 5xx Server Error
-            500 => "Internal Server Error",
-            501 => "Not Implemented",
-            502 => "Bad Gateway",
-            503 => "Service Unavailable",
-            504 => "Gateway Timeout",
-            505 => "HTTP Version Not Supported",
-            506 => "Variant Also Negotiates",
-            507 => "Insufficient Storage",
-            508 => "Loop Detected",
-            510 => "Not Extended",
-            511 => "Network Authentication Required",
-            _ => "Unknown Status",
-        }
-    }
 
     pub fn ok_text(body: String) -> Self {
         Self::new(200, body)
@@ -196,7 +130,7 @@ impl Response {
         let mut response = Self::new(422, body);
         response
             .headers
-            .insert("Content-Type".to_string(), "application/json".to_string());
+            .insert(CONTENT_TYPE.to_string(), APPLICATION_JSON.to_string());
         response
     }
 
@@ -208,7 +142,7 @@ impl Response {
         let mut response = Self::new(500, data.to_string());
         response
             .headers
-            .insert("Content-Type".to_string(), "application/json".to_string());
+            .insert(CONTENT_TYPE.to_string(), APPLICATION_JSON.to_string());
         response
     }
 
@@ -216,7 +150,7 @@ impl Response {
         let mut response = Self::new(status, "".to_string());
         response
             .headers
-            .insert("Location".to_string(), location.to_string());
+            .insert(LOCATION.to_string(), location.to_string());
         response
     }
 
@@ -224,13 +158,13 @@ impl Response {
         let mut response = Self::new(200, "".to_string());
         response
             .headers
-            .insert("Content-Type".to_string(), "text/event-stream".to_string());
+            .insert(CONTENT_TYPE.to_string(), TEXT_EVENT_STREAM.to_string());
         response
             .headers
-            .insert("Cache-Control".to_string(), "no-cache".to_string());
+            .insert(CACHE_CONTROL.to_string(), NO_CACHE.to_string());
         response
             .headers
-            .insert("Connection".to_string(), "keep-alive".to_string());
+            .insert(CONNECTION.to_string(), KEEP_ALIVE.to_string());
         response
     }
 }

@@ -2,6 +2,7 @@ use crate::infrastructure::http::middleware::MiddlewareFuture;
 use crate::infrastructure::http::request::request::Request;
 use crate::infrastructure::http::response::response::Response;
 use crate::infrastructure::http::routes::REGISTRY;
+use crate::kernel::constants::headers::{ACCEPT_ENCODING, GZIP_ENCODING};
 
 pub async fn dispatch_request(request: &mut Request) -> Response {
     let matched = {
@@ -12,7 +13,6 @@ pub async fn dispatch_request(request: &mut Request) -> Response {
     let mut response = if let Some((handler, middlewares, params)) = matched {
         request.params = params;
 
-        // Build the middleware chain (Onion pattern)
         let mut current_handler: Box<dyn FnOnce(Request) -> MiddlewareFuture + Send> =
             Box::new(move |req| (handler)(req));
 
@@ -28,8 +28,8 @@ pub async fn dispatch_request(request: &mut Request) -> Response {
     };
 
     // Compress if client accepts gzip
-    if let Some(accept_encoding) = request.header("Accept-Encoding") {
-        if accept_encoding.contains("gzip") {
+    if let Some(accept_encoding) = request.header(ACCEPT_ENCODING) {
+        if accept_encoding.contains(GZIP_ENCODING) {
             response = response.compress_gzip();
         }
     }

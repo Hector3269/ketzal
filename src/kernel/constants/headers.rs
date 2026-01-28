@@ -10,3 +10,8 @@ pub const CACHE_CONTROL: &str = "Cache-Control";
 pub const CONNECTION: &str = "Connection";
 pub const LOCATION: &str = "Location";
 pub const BEARER_PREFIX: &str = "Bearer ";
+
+// Common values
+pub const GZIP_ENCODING: &str = "gzip";
+pub const NO_CACHE: &str = "no-cache";
+pub const KEEP_ALIVE: &str = "keep-alive";
