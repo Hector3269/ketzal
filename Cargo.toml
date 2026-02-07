@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "ketzal-http", "ketzal-router",
+    "ketzal", "ketzal-http", "ketzal-router",
 ]
 [workspace.package]
 edition = "2021"
