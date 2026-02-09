@@ -9,3 +9,7 @@ repository.workspace = true
 description.workspace = true
 
 [dependencies]
+http = "1"
+bytes = "1"
+thiserror = "2"
+tracing = "0.1"

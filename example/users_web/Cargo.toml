@@ -1,6 +1,9 @@
 [package]
 name = "users_web"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+publish = false
 
 [dependencies]
+ketzal = { version = "0.1.0", path = "../../ketzal" }
+tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread"] }

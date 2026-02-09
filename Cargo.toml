@@ -1,7 +1,8 @@
 [workspace]
 resolver = "2"
-members = [
+members = ["example/users_web",
     "ketzal", "ketzal-http", "ketzal-router",
+    
 ]
 [workspace.package]
 edition = "2021"

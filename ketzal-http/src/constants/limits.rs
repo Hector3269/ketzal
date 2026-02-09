@@ -1,0 +1,6 @@
+pub const STREAMING_THRESHOLD_BYTES: u64 = 16 * 1024;
+pub const MAX_BODY_SIZE_BYTES: u64 = 10 * 1024 * 1024;
+pub const MAX_HEADERS_SIZE_BYTES: usize = 8 * 1024;
+pub const GZIP_MIN_SIZE_BYTES: usize = 1024;
+pub const INITIAL_LINE_BUFFER_CAPACITY: usize = 256;
+pub const INITIAL_HEADERS_CAPACITY: usize = 16;

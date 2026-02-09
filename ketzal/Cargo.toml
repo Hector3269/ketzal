@@ -9,3 +9,6 @@ repository.workspace = true
 description.workspace = true
 
 [dependencies]
+ketzal-http = { version = "0.1.0", path = "../ketzal-http" }
+ketzal-router = { version = "0.1.0", path = "../ketzal-router" }
+tokio = {version = "1.49.0", features = ["macros", "rt-multi-thread", "net", "io-util"] }
