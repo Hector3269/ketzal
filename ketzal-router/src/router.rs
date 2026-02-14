@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use http::Method;
+use std::collections::HashMap;
 
 use crate::route::Route;
 
@@ -22,8 +22,7 @@ where
 
     pub fn register(&mut self, route: Route<Req, Res>) {
         if let Some(name) = &route.name {
-            self.named_routes
-                .insert(name.clone(), route.path.clone());
+            self.named_routes.insert(name.clone(), route.path.clone());
         }
         self.routes.push(route);
     }
@@ -32,13 +31,9 @@ where
         self.named_routes.get(name)
     }
 
-    pub fn find(
-        &self,
-        method: &Method,
-        path: &str,
-    ) -> Option<&Route<Req, Res>> {
-        self.routes.iter().find(|r| {
-            &r.method == method && r.path == path
-        })
+    pub fn find(&self, method: &Method, path: &str) -> Option<&Route<Req, Res>> {
+        self.routes
+            .iter()
+            .find(|r| &r.method == method && r.path == path)
     }
 }

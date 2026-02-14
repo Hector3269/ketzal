@@ -1,5 +1,5 @@
-use ketzal_http::config::ServerConfig;
 use crate::server::server::Server;
+use ketzal_http::config::ServerConfig;
 
 pub struct Bootstrap {
     server_config: ServerConfig,

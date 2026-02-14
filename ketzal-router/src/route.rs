@@ -1,13 +1,11 @@
+use http::Method;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
-use http::Method;
 
-pub type HandlerFuture<Res> =
-    Pin<Box<dyn Future<Output = Res> + Send>>;
+pub type HandlerFuture<Res> = Pin<Box<dyn Future<Output = Res> + Send>>;
 
-pub type Handler<Req, Res> =
-    dyn Fn(Req) -> HandlerFuture<Res> + Send + Sync;
+pub type Handler<Req, Res> = dyn Fn(Req) -> HandlerFuture<Res> + Send + Sync;
 
 #[derive(Clone)]
 pub struct Route<Req, Res> {
@@ -27,9 +25,7 @@ where
         F: Fn(Req) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Res> + Send + 'static,
     {
-        let handler = Arc::new(move |req: Req| {
-            Box::pin(handler(req)) as HandlerFuture<Res>
-        });
+        let handler = Arc::new(move |req: Req| Box::pin(handler(req)) as HandlerFuture<Res>);
 
         Self {
             method,

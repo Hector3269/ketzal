@@ -1,7 +1,11 @@
 [workspace]
 resolver = "2"
-members = ["example/users_web",
-    "ketzal", "ketzal-http", "ketzal-router",
+members = [
+    "example/users_web",
+    "ketzal", 
+    "ketzal-http", 
+    "ketzal-router", 
+    "ketzal-validation",
     
 ]
 [workspace.package]

@@ -1,5 +1,5 @@
-use tokio::net::{TcpListener, TcpStream};
 use std::io;
+use tokio::net::{TcpListener, TcpStream};
 
 pub struct Listener {
     inner: TcpListener,

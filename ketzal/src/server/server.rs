@@ -1,6 +1,6 @@
-use ketzal_http::config::ServerConfig;
-use crate::server::listener::Listener;
 use crate::server::connection::Connection;
+use crate::server::listener::Listener;
+use ketzal_http::config::ServerConfig;
 use std::io;
 
 pub struct Server {

@@ -19,9 +19,7 @@ impl TestResponse {
 fn can_register_get_route() {
     let mut router = Router::<TestRequest, TestResponse>::new();
 
-    let route = Route::get("/users", |_req| async {
-        TestResponse::ok()
-    });
+    let route = Route::get("/users", |_req| async { TestResponse::ok() });
 
     router.register(route);
 
@@ -33,12 +31,7 @@ fn can_register_get_route() {
 fn route_name_is_stored() {
     let mut router = Router::<TestRequest, TestResponse>::new();
 
-    router.register(
-        Route::get("/users", |_req| async {
-            TestResponse::ok()
-        })
-        .name("users.index"),
-    );
+    router.register(Route::get("/users", |_req| async { TestResponse::ok() }).name("users.index"));
 
     let url = router.url("users.index");
     assert_eq!(url, Some(&"/users".to_string()));
@@ -48,11 +41,7 @@ fn route_name_is_stored() {
 fn different_methods_do_not_conflict() {
     let mut router = Router::<TestRequest, TestResponse>::new();
 
-    router.register(
-        Route::get("/users", |_req| async {
-            TestResponse::ok()
-        }),
-    );
+    router.register(Route::get("/users", |_req| async { TestResponse::ok() }));
 
     let found = router.find(&Method::POST, "/users");
     assert!(found.is_none());
@@ -70,9 +59,7 @@ fn unknown_route_returns_none() {
 fn can_register_post_route() {
     let mut router = Router::<TestRequest, TestResponse>::new();
 
-    let route = Route::post("/users", |_req| async {
-        TestResponse::ok()
-    });
+    let route = Route::post("/users", |_req| async { TestResponse::ok() });
 
     router.register(route);
 
@@ -84,9 +71,7 @@ fn can_register_post_route() {
 fn can_register_put_route() {
     let mut router = Router::<TestRequest, TestResponse>::new();
 
-    let route = Route::put("/users", |_req| async {
-        TestResponse::ok()
-    });
+    let route = Route::put("/users", |_req| async { TestResponse::ok() });
 
     router.register(route);
 
@@ -98,9 +83,7 @@ fn can_register_put_route() {
 fn can_register_delete_route() {
     let mut router = Router::<TestRequest, TestResponse>::new();
 
-    let route = Route::delete("/users", |_req| async {
-        TestResponse::ok()
-    });
+    let route = Route::delete("/users", |_req| async { TestResponse::ok() });
 
     router.register(route);
 
@@ -112,15 +95,9 @@ fn can_register_delete_route() {
 fn can_register_multiple_routes() {
     let mut router = Router::<TestRequest, TestResponse>::new();
 
-    router.register(Route::get("/users", |_req| async {
-        TestResponse::ok()
-    }));
-    router.register(Route::post("/users", |_req| async {
-        TestResponse::ok()
-    }));
-    router.register(Route::get("/posts", |_req| async {
-        TestResponse::ok()
-    }));
+    router.register(Route::get("/users", |_req| async { TestResponse::ok() }));
+    router.register(Route::post("/users", |_req| async { TestResponse::ok() }));
+    router.register(Route::get("/posts", |_req| async { TestResponse::ok() }));
 
     assert!(router.find(&Method::GET, "/users").is_some());
     assert!(router.find(&Method::POST, "/users").is_some());
