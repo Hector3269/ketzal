@@ -55,18 +55,41 @@ macro_rules! form_request {
     };
 }
 
+// validate macros
+
+/// application/json
 #[macro_export]
-macro_rules! validate {
+macro_rules! validate_json {
     ($req:expr => {
         $($field:literal => $rule:literal),* $(,)?
     }) => {{
-        match $req.validate([
+        let __req = &$req;
+
+        match __req.validate_json([
             $(
                 ($field, $rule),
             )*
         ]) {
-            std::ops::ControlFlow::Continue(val) => val,
-            std::ops::ControlFlow::Break(resp) => return resp,
+            ::std::ops::ControlFlow::Continue(val) => val,
+            ::std::ops::ControlFlow::Break(resp) => return resp,
+        }
+    }};
+}
+// application/x-www-form-urlencoded
+#[macro_export]
+macro_rules! validate_form {
+    ($req:expr => {
+        $($field:literal => $rule:literal),* $(,)?
+    }) => {{
+        let __req = &$req;
+
+        match __req.validate_form([
+            $(
+                ($field, $rule),
+            )*
+        ]) {
+            ::std::ops::ControlFlow::Continue(val) => val,
+            ::std::ops::ControlFlow::Break(resp) => return resp,
         }
     }};
 }

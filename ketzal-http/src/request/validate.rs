@@ -11,15 +11,35 @@ use crate::request::Request;
 use crate::response::Response;
 
 impl Request {
-    pub fn validate<const N: usize>(
+    pub fn validate_json<const N: usize>(
         &self,
         rules: [(&'static str, &'static str); N],
     ) -> ControlFlow<Response, ValidatedData> {
-        let data = match self.json_body() {
+        let data = match self.parse_json() {
             Ok(data) => data,
-            Err(response) => return ControlFlow::Break(response),
+            Err(resp) => return ControlFlow::Break(resp),
         };
 
+        self.run_validation(data, rules)
+    }
+
+    pub fn validate_form<const N: usize>(
+        &self,
+        rules: [(&'static str, &'static str); N],
+    ) -> ControlFlow<Response, ValidatedData> {
+        let data = match self.parse_form() {
+            Ok(data) => data,
+            Err(resp) => return ControlFlow::Break(resp),
+        };
+
+        self.run_validation(data, rules)
+    }
+
+    fn run_validation<const N: usize>(
+        &self,
+        data: HashMap<String, Value>,
+        rules: [(&'static str, &'static str); N],
+    ) -> ControlFlow<Response, ValidatedData> {
         let rules_map: HashMap<&str, &str> = rules.iter().cloned().collect();
 
         let mut validator = Validator::make(data, rules_map);
@@ -30,7 +50,7 @@ impl Request {
         }
     }
 
-    fn json_body(&self) -> Result<HashMap<String, Value>, Response> {
+    fn parse_json(&self) -> Result<HashMap<String, Value>, Response> {
         let content_type = self
             .headers
             .get(CONTENT_TYPE)
@@ -61,5 +81,40 @@ impl Request {
         })?;
 
         Ok(obj.clone().into_iter().collect())
+    }
+
+    fn parse_form(&self) -> Result<HashMap<String, Value>, Response> {
+        let content_type = self
+            .headers
+            .get(CONTENT_TYPE)
+            .and_then(|v| v.to_str().ok())
+            .ok_or_else(|| {
+                Response::json_error(
+                    StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                    "Content-Type must be application/x-www-form-urlencoded",
+                )
+            })?;
+
+        if !content_type.starts_with("application/x-www-form-urlencoded") {
+            return Err(Response::json_error(
+                StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                "Content-Type must be application/x-www-form-urlencoded",
+            ));
+        }
+
+        if self.body.is_empty() {
+            return Ok(HashMap::new());
+        }
+
+        let parsed: HashMap<String, String> = serde_urlencoded::from_bytes(&self.body)
+            .map_err(|_| Response::json_error(StatusCode::BAD_REQUEST, "Invalid form body"))?;
+
+        let mut map = HashMap::new();
+
+        for (k, v) in parsed {
+            map.insert(k, Value::String(v));
+        }
+
+        Ok(map)
     }
 }

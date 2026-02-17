@@ -1,4 +1,4 @@
-use ketzal::validate;
+use ketzal::validate_form;
 use ketzal::{Request, Response};
 
 pub struct UserController;
@@ -9,7 +9,7 @@ impl UserController {
     }
 
     pub async fn store(req: Request) -> Response {
-        let validated = validate!(req => {
+        let validated = validate_form!(req => {
             "name" => "required|string|max:255",
             "email" => "required|email",
             "password" => "required|min:8|confirmed",
