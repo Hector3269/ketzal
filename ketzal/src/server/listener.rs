@@ -12,8 +12,7 @@ impl Listener {
     }
 
     pub async fn accept(&self) -> io::Result<TcpStream> {
-        let (stream, addr) = self.inner.accept().await?;
-        println!("📡 New connection from {addr}");
+        let (stream, _) = self.inner.accept().await?;
         Ok(stream)
     }
 }

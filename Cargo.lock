@@ -91,9 +91,12 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "http",
+ "ketzal-validation",
+ "serde",
  "serde_json",
  "serde_urlencoded",
  "thiserror",
+ "tokio",
  "tracing",
  "urlencoding",
 ]

@@ -1,8 +1,9 @@
 pub mod config;
-pub mod server;
 pub mod routes;
+pub mod server;
 pub use ketzal_http::{Request, Response};
 pub use ketzal_router::{Route, Router};
+
 // macro validator
 #[macro_export]
 macro_rules! form_request {
@@ -54,7 +55,23 @@ macro_rules! form_request {
     };
 }
 
-// routes 
+#[macro_export]
+macro_rules! validate {
+    ($req:expr => {
+        $($field:literal => $rule:literal),* $(,)?
+    }) => {{
+        match $req.validate([
+            $(
+                ($field, $rule),
+            )*
+        ]) {
+            std::ops::ControlFlow::Continue(val) => val,
+            std::ops::ControlFlow::Break(resp) => return resp,
+        }
+    }};
+}
+
+// routes
 
 // Route registration macro for web routes
 #[cfg(feature = "web")]
@@ -87,4 +104,3 @@ macro_rules! routes_api {
         }
     };
 }
-

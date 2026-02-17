@@ -3,4 +3,5 @@ use ketzal::{routes_web, Route};
 
 routes_web! {
     Route::get("/", UserController::login);
+    Route::post("/users/store", UserController::store);
 }

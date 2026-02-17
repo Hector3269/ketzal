@@ -1,6 +1,5 @@
 use crate::validator::Validator;
 use serde_json::Value;
-
 pub fn confirmed(
     field: &str,
     field_name: &str,
@@ -8,24 +7,26 @@ pub fn confirmed(
     validator: &Validator,
     _: Option<&str>,
 ) -> Result<(), String> {
+    let v = match value {
+        Some(v) => v,
+        None => return Ok(()),
+    };
+
     let custom_message = validator
         .custom_messages
         .get(&format!("{}.confirmed", field))
         .map(|s| s.as_str());
 
-    let confirmation = format!("{}_confirmation", field);
+    let confirmation_key = format!("{}_confirmation", field);
 
-    let v = value.ok_or_else(|| {
-        custom_message
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| format!("The field {} is required.", field_name))
-    })?;
-
-    let conf = validator.data.get(&confirmation).ok_or_else(|| {
-        custom_message
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| format!("The confirmation of {} does not match.", field_name))
-    })?;
+    let conf = match validator.data.get(&confirmation_key) {
+        Some(v) => v,
+        None => {
+            return Err(custom_message
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| format!("The confirmation of {} does not match.", field_name)));
+        }
+    };
 
     if normalize(v) != normalize(conf) {
         return Err(custom_message
