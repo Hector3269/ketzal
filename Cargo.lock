@@ -81,6 +81,7 @@ dependencies = [
  "http",
  "ketzal-http",
  "ketzal-router",
+ "ketzal-validation",
  "lazy_static",
  "tokio",
 ]
@@ -106,6 +107,8 @@ name = "ketzal-router"
 version = "0.1.0"
 dependencies = [
  "http",
+ "ketzal-http",
+ "ketzal-validation",
  "lazy_static",
  "regex",
  "serde",

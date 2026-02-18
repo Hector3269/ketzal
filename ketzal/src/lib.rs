@@ -23,7 +23,7 @@ macro_rules! form_request {
         #[derive(Default)]
         pub struct $name;
 
-        impl $crate::infrastructure::http::request::form_request::FormRequest for $name {
+        impl ketzal_validation::FormRequest for $name {
             fn rules(&self) -> std::collections::HashMap<&'static str, &'static str> {
                 let mut map = std::collections::HashMap::new();
                 $(
