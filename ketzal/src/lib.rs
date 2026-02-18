@@ -1,8 +1,9 @@
 pub mod config;
-pub mod server;
 pub mod routes;
+pub mod server;
 pub use ketzal_http::{Request, Response};
 pub use ketzal_router::{Route, Router};
+
 // macro validator
 #[macro_export]
 macro_rules! form_request {
@@ -22,7 +23,7 @@ macro_rules! form_request {
         #[derive(Default)]
         pub struct $name;
 
-        impl $crate::infrastructure::http::request::form_request::FormRequest for $name {
+        impl ketzal_validation::FormRequest for $name {
             fn rules(&self) -> std::collections::HashMap<&'static str, &'static str> {
                 let mut map = std::collections::HashMap::new();
                 $(
@@ -54,7 +55,46 @@ macro_rules! form_request {
     };
 }
 
-// routes 
+// validate macros
+
+/// application/json
+#[macro_export]
+macro_rules! validate_json {
+    ($req:expr => {
+        $($field:literal => $rule:literal),* $(,)?
+    }) => {{
+        let __req = &$req;
+
+        match __req.validate_json([
+            $(
+                ($field, $rule),
+            )*
+        ]) {
+            ::std::ops::ControlFlow::Continue(val) => val,
+            ::std::ops::ControlFlow::Break(resp) => return resp,
+        }
+    }};
+}
+// application/x-www-form-urlencoded
+#[macro_export]
+macro_rules! validate_form {
+    ($req:expr => {
+        $($field:literal => $rule:literal),* $(,)?
+    }) => {{
+        let __req = &$req;
+
+        match __req.validate_form([
+            $(
+                ($field, $rule),
+            )*
+        ]) {
+            ::std::ops::ControlFlow::Continue(val) => val,
+            ::std::ops::ControlFlow::Break(resp) => return resp,
+        }
+    }};
+}
+
+// routes
 
 // Route registration macro for web routes
 #[cfg(feature = "web")]
@@ -87,4 +127,3 @@ macro_rules! routes_api {
         }
     };
 }
-

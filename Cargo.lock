@@ -81,6 +81,7 @@ dependencies = [
  "http",
  "ketzal-http",
  "ketzal-router",
+ "ketzal-validation",
  "lazy_static",
  "tokio",
 ]
@@ -91,9 +92,12 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "http",
+ "ketzal-validation",
+ "serde",
  "serde_json",
  "serde_urlencoded",
  "thiserror",
+ "tokio",
  "tracing",
  "urlencoding",
 ]
@@ -103,6 +107,8 @@ name = "ketzal-router"
 version = "0.1.0"
 dependencies = [
  "http",
+ "ketzal-http",
+ "ketzal-validation",
  "lazy_static",
  "regex",
  "serde",
