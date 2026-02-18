@@ -15,9 +15,9 @@ Thank you to everyone who has contributed to **Ketzal**! 🎉
   Please keep the list in alphabetical order by GitHub username.
 -->
 
-| Name | GitHub | Contributions |
-|------|--------|---------------|
-| | | |
+| Avatar | Name | GitHub | Contributions |
+|--------|------|--------|---------------|
+|        | | | |
 
 ---
 
