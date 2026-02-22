@@ -12,10 +12,8 @@ fn multiple_rules_validation() {
         "password": "12345678"
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("email", "required|email"), ("password", "required|min:8")].into(),
-    );
+    let mut v =
+        Validator::make(data, [("email", "required|email"), ("password", "required|min:8")].into());
 
     assert!(v.validate().is_ok());
 }
@@ -27,10 +25,8 @@ fn multiple_rules_first_fails() {
         "password": "12345678"
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("email", "required|email"), ("password", "required|min:8")].into(),
-    );
+    let mut v =
+        Validator::make(data, [("email", "required|email"), ("password", "required|min:8")].into());
 
     let result = v.validate();
     assert!(result.is_err());
@@ -46,10 +42,8 @@ fn multiple_rules_second_fails() {
         "password": "123"
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("email", "required|email"), ("password", "required|min:8")].into(),
-    );
+    let mut v =
+        Validator::make(data, [("email", "required|email"), ("password", "required|min:8")].into());
 
     let result = v.validate();
     assert!(result.is_err());
@@ -65,10 +59,8 @@ fn multiple_rules_both_fail() {
         "password": "123"
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("email", "required|email"), ("password", "required|min:8")].into(),
-    );
+    let mut v =
+        Validator::make(data, [("email", "required|email"), ("password", "required|min:8")].into());
 
     let result = v.validate();
     assert!(result.is_err());
@@ -206,10 +198,7 @@ fn validated_data_preserves_values() {
         "name": "John Doe"
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("email", "required|email"), ("name", "required")].into(),
-    );
+    let mut v = Validator::make(data, [("email", "required|email"), ("name", "required")].into());
 
     v.validate().unwrap();
     let validated = v.validated_data();
@@ -241,10 +230,7 @@ fn validated_data_partial_pass() {
         "name": ""  // Empty fails required
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("email", "required|email"), ("name", "required")].into(),
-    );
+    let mut v = Validator::make(data, [("email", "required|email"), ("name", "required")].into());
 
     let _ = v.validate();
     let validated = v.validated_data();

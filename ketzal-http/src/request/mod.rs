@@ -1,5 +1,5 @@
-pub mod request;
-pub use request::Request;
+pub mod http_request;
+pub use http_request::Request;
 
 pub mod validated_data;
 

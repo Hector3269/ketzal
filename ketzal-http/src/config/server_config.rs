@@ -8,10 +8,7 @@ pub struct ServerConfig {
 
 impl Default for ServerConfig {
     fn default() -> Self {
-        Self {
-            host: IpAddr::V4(Ipv4Addr::LOCALHOST),
-            port: 5002,
-        }
+        Self { host: IpAddr::V4(Ipv4Addr::LOCALHOST), port: 5002 }
     }
 }
 

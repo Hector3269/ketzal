@@ -11,20 +11,16 @@ pub fn email(
 ) -> Result<(), String> {
     let email_regex = get_email_regex();
 
-    let v = match value {
-        Some(val) => val,
-        None => return Ok(()),
+    let Some(v) = value else {
+        return Ok(());
     };
 
     let s = v.as_str().ok_or_else(|| {
-        format!(
-            "{}",
-            validator
-                .custom_messages
-                .get(&format!("{}.string", field))
-                .cloned()
-                .unwrap_or_else(|| format!("The field {} must be a string.", field_name))
-        )
+        validator
+            .custom_messages
+            .get(&format!("{field}.string"))
+            .cloned()
+            .unwrap_or_else(|| format!("The field {field_name} must be a string."))
     })?;
 
     let s = s.trim();
@@ -32,9 +28,9 @@ pub fn email(
     if !email_regex.is_match(s) {
         return Err(validator
             .custom_messages
-            .get(&format!("{}.email", field))
+            .get(&format!("{field}.email"))
             .cloned()
-            .unwrap_or_else(|| format!("The field {} must be a valid email.", field_name)));
+            .unwrap_or_else(|| format!("The field {field_name} must be a valid email.")));
     }
 
     Ok(())

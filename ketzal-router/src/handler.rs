@@ -1,5 +1,5 @@
 //! Handler module
-//! 
+//!
 //! Provides the [`Handler`] trait and related types for creating route handlers.
 //!
 //! ## Handler Signatures
@@ -68,6 +68,7 @@ pub trait FromParam: Sized {
     /// # Returns
     ///
     /// Returns `Ok(Self)` on success, or `Err(Response)` with a 400 Bad Request on failure.
+    #[allow(clippy::result_large_err)]
     fn from_param(value: &str) -> Result<Self, Response>;
 }
 
@@ -102,6 +103,7 @@ pub trait FromParams: Sized {
     /// # Returns
     ///
     /// Returns `Ok(Self)` on success, or `Err(Response)` on failure.
+    #[allow(clippy::result_large_err)]
     fn from_params(params: &Params) -> Result<Self, Response>;
 }
 
@@ -114,10 +116,7 @@ impl FromParams for () {
 impl<T: FromParam> FromParams for (T,) {
     fn from_params(params: &Params) -> Result<Self, Response> {
         let mut it = params.all().values();
-        let t = T::from_param(
-            it.next()
-                .ok_or_else(|| Response::bad_request("Missing param 1"))?,
-        )?;
+        let t = T::from_param(it.next().ok_or_else(|| Response::bad_request("Missing param 1"))?)?;
         Ok((t,))
     }
 }
@@ -125,14 +124,8 @@ impl<T: FromParam> FromParams for (T,) {
 impl<T: FromParam, U: FromParam> FromParams for (T, U) {
     fn from_params(params: &Params) -> Result<Self, Response> {
         let mut it = params.all().values();
-        let t = T::from_param(
-            it.next()
-                .ok_or_else(|| Response::bad_request("Missing param 1"))?,
-        )?;
-        let u = U::from_param(
-            it.next()
-                .ok_or_else(|| Response::bad_request("Missing param 2"))?,
-        )?;
+        let t = T::from_param(it.next().ok_or_else(|| Response::bad_request("Missing param 1"))?)?;
+        let u = U::from_param(it.next().ok_or_else(|| Response::bad_request("Missing param 2"))?)?;
         Ok((t, u))
     }
 }
@@ -140,18 +133,9 @@ impl<T: FromParam, U: FromParam> FromParams for (T, U) {
 impl<T: FromParam, U: FromParam, V: FromParam> FromParams for (T, U, V) {
     fn from_params(params: &Params) -> Result<Self, Response> {
         let mut it = params.all().values();
-        let t = T::from_param(
-            it.next()
-                .ok_or_else(|| Response::bad_request("Missing param 1"))?,
-        )?;
-        let u = U::from_param(
-            it.next()
-                .ok_or_else(|| Response::bad_request("Missing param 2"))?,
-        )?;
-        let v = V::from_param(
-            it.next()
-                .ok_or_else(|| Response::bad_request("Missing param 3"))?,
-        )?;
+        let t = T::from_param(it.next().ok_or_else(|| Response::bad_request("Missing param 1"))?)?;
+        let u = U::from_param(it.next().ok_or_else(|| Response::bad_request("Missing param 2"))?)?;
+        let v = V::from_param(it.next().ok_or_else(|| Response::bad_request("Missing param 3"))?)?;
         Ok((t, u, v))
     }
 }

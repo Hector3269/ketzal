@@ -1,4 +1,4 @@
-use crate::server::server::Server;
+use crate::server::http_server::Server;
 use ketzal_http::config::ServerConfig;
 
 pub struct Bootstrap {
@@ -7,9 +7,7 @@ pub struct Bootstrap {
 
 impl Bootstrap {
     pub fn new() -> Self {
-        Self {
-            server_config: ServerConfig::default(),
-        }
+        Self { server_config: ServerConfig::default() }
     }
 
     pub fn with_server(mut self, config: ServerConfig) -> Self {

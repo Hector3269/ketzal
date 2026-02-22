@@ -48,6 +48,7 @@ fn validator_clone_has_independent_errors() {
 
 #[test]
 fn concurrent_validation_same_rules() {
+    #[allow(clippy::type_complexity)]
     let results: Arc<Mutex<Vec<Result<(), HashMap<String, Vec<String>>>>>> =
         Arc::new(Mutex::new(Vec::new()));
 
@@ -140,16 +141,12 @@ fn validator_reuse_after_validation() {
 
 #[test]
 fn validator_with_custom_messages_thread_safe() {
-    let mut v1 = Validator::make(
-        make(json!({ "email": "invalid" })),
-        [("email", "required|email")].into(),
-    );
+    let mut v1 =
+        Validator::make(make(json!({ "email": "invalid" })), [("email", "required|email")].into());
     v1.set_custom_messages([("email.email", "Custom: Invalid email")].into());
 
-    let mut v2 = Validator::make(
-        make(json!({ "email": "invalid" })),
-        [("email", "required|email")].into(),
-    );
+    let mut v2 =
+        Validator::make(make(json!({ "email": "invalid" })), [("email", "required|email")].into());
     // v2 has no custom messages
 
     let r1 = v1.validate();

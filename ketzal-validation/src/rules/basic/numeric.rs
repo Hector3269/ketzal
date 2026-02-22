@@ -8,17 +8,18 @@ pub fn numeric(
     validator: &Validator,
     _: Option<&str>,
 ) -> Result<(), String> {
-    let custom_message = validator
-        .custom_messages
-        .get(&format!("{}.numeric", field))
-        .map(|s| s.as_str());
+    let custom_message =
+        validator.custom_messages.get(&format!("{field}.numeric")).map(String::as_str);
+
     if let Some(v) = value {
-        let is_numeric = v.is_number() || v.as_str().map_or(false, |s| s.parse::<f64>().is_ok());
+        let is_numeric = v.is_number() || v.as_str().is_some_and(|s| s.parse::<f64>().is_ok());
+
         if !is_numeric {
             return Err(custom_message
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| format!("The field {} must be numeric.", field_name)));
+                .map(str::to_string)
+                .unwrap_or_else(|| format!("The field {field_name} must be numeric.")));
         }
     }
+
     Ok(())
 }

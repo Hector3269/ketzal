@@ -35,17 +35,12 @@ fn custom_message_per_rule() {
         "age": "abc"
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("email", "required|email"), ("age", "required|numeric")].into(),
-    );
+    let mut v =
+        Validator::make(data, [("email", "required|email"), ("age", "required|numeric")].into());
 
     v.set_custom_messages(
-        [
-            ("email.email", "Please provide a valid email"),
-            ("age.numeric", "Age must be a number"),
-        ]
-        .into(),
+        [("email.email", "Please provide a valid email"), ("age.numeric", "Age must be a number")]
+            .into(),
     );
 
     let result = v.validate();
@@ -76,9 +71,7 @@ fn custom_messages_for_multiple_rule_failures() {
     assert!(result.is_err());
     let errors = result.unwrap_err();
     // Should contain the custom email message
-    assert!(errors["email"]
-        .iter()
-        .any(|e| e.contains("email") || e.contains("Email")));
+    assert!(errors["email"].iter().any(|e| e.contains("email") || e.contains("Email")));
 }
 
 #[test]
@@ -112,10 +105,7 @@ fn combining_custom_messages_and_attributes() {
     let result = v.validate();
     assert!(result.is_err());
     let errors = result.unwrap_err();
-    assert_eq!(
-        errors["contact_email"][0],
-        "Please enter a valid contact e-mail"
-    );
+    assert_eq!(errors["contact_email"][0], "Please enter a valid contact e-mail");
 }
 
 #[test]
@@ -269,12 +259,7 @@ fn partial_validation_errors() {
 
     let mut v = Validator::make(
         data,
-        [
-            ("field1", "required"),
-            ("field2", "required"),
-            ("field3", "required"),
-        ]
-        .into(),
+        [("field1", "required"), ("field2", "required"), ("field3", "required")].into(),
     );
 
     let result = v.validate();
@@ -296,12 +281,8 @@ fn validation_error_collection() {
 
     let mut v = Validator::make(
         data,
-        [
-            ("name", "required|string"),
-            ("email", "required|email"),
-            ("age", "required|numeric"),
-        ]
-        .into(),
+        [("name", "required|string"), ("email", "required|email"), ("age", "required|numeric")]
+            .into(),
     );
 
     let result = v.validate();

@@ -44,10 +44,8 @@ fn login_form_validation() {
         "password": "mypassword"
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("email", "required|email"), ("password", "required|min:6")].into(),
-    );
+    let mut v =
+        Validator::make(data, [("email", "required|email"), ("password", "required|min:6")].into());
 
     assert!(v.validate().is_ok());
 }
@@ -206,10 +204,7 @@ fn first_rule_failure_stops_chain() {
 fn empty_data_with_required_fields() {
     let data = make(json!({}));
 
-    let mut v = Validator::make(
-        data,
-        [("email", "required|email"), ("name", "required")].into(),
-    );
+    let mut v = Validator::make(data, [("email", "required|email"), ("name", "required")].into());
 
     let result = v.validate();
     assert!(result.is_err());
@@ -225,12 +220,7 @@ fn partial_data_passes_partial_validation() {
 
     let mut v = Validator::make(
         data,
-        [
-            ("email", "required|email"),
-            ("name", "required"),
-            ("age", "required|numeric"),
-        ]
-        .into(),
+        [("email", "required|email"), ("name", "required"), ("age", "required|numeric")].into(),
     );
 
     let result = v.validate();
@@ -254,12 +244,7 @@ fn validated_data_filters_unvalidated() {
 
     let mut v = Validator::make(
         data,
-        [
-            ("email", "required|email"),
-            ("name", "required"),
-            ("age", "required|numeric"),
-        ]
-        .into(),
+        [("email", "required|email"), ("name", "required"), ("age", "required|numeric")].into(),
     );
 
     v.validate().unwrap();

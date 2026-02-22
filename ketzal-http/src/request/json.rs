@@ -13,6 +13,7 @@ impl Request {
             .unwrap_or(false)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn json(&self) -> Result<Value, Response> {
         if !self.is_json() {
             return Err(Response::json_error(
@@ -22,16 +23,14 @@ impl Request {
         }
 
         if self.body.is_empty() {
-            return Err(Response::json_error(
-                StatusCode::BAD_REQUEST,
-                "Request body is empty",
-            ));
+            return Err(Response::json_error(StatusCode::BAD_REQUEST, "Request body is empty"));
         }
 
         serde_json::from_slice::<Value>(&self.body)
             .map_err(|_| Response::json_error(StatusCode::BAD_REQUEST, "Invalid JSON body"))
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn json_map(&self) -> Result<HashMap<String, String>, Response> {
         let json = self.json()?;
 

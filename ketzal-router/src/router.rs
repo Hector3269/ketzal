@@ -1,5 +1,5 @@
 //! Router module
-//! 
+//!
 //! Provides the [`Router`] struct for managing and dispatching routes.
 
 use crate::handler::HandlerFuture;
@@ -22,7 +22,7 @@ use ketzal_http::Request;
 ///
 /// let mut router = Router::new();
 /// router.register(Route::get("/", hello));
-/// 
+///
 /// // Handle a request
 /// let req = Request::new(http::Method::GET, "/", None);
 /// if let Some(future) = router.handle(&http::Method::GET, "/", req) {
@@ -85,7 +85,7 @@ impl Router {
     /// ```
     pub fn handle(&self, method: &Method, path: &str, req: Request) -> Option<HandlerFuture> {
         for route in &self.routes {
-            if &route.method != method {
+            if route.method != method {
                 continue;
             }
             if route.path == path {

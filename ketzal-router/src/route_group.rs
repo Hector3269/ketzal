@@ -1,5 +1,5 @@
 //! Route Group module
-//! 
+//!
 //! Provides functionality for grouping routes with common prefixes.
 //!
 //! This module is currently under development.

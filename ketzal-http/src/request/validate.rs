@@ -50,12 +50,10 @@ impl Request {
         }
     }
 
+    #[allow(clippy::result_large_err)]
     fn parse_json(&self) -> Result<HashMap<String, Value>, Response> {
-        let content_type = self
-            .headers
-            .get(CONTENT_TYPE)
-            .and_then(|v| v.to_str().ok())
-            .ok_or_else(|| {
+        let content_type =
+            self.headers.get(CONTENT_TYPE).and_then(|v| v.to_str().ok()).ok_or_else(|| {
                 Response::json_error(
                     StatusCode::UNSUPPORTED_MEDIA_TYPE,
                     "Content-Type must be application/json",
@@ -83,12 +81,10 @@ impl Request {
         Ok(obj.clone().into_iter().collect())
     }
 
+    #[allow(clippy::result_large_err)]
     fn parse_form(&self) -> Result<HashMap<String, Value>, Response> {
-        let content_type = self
-            .headers
-            .get(CONTENT_TYPE)
-            .and_then(|v| v.to_str().ok())
-            .ok_or_else(|| {
+        let content_type =
+            self.headers.get(CONTENT_TYPE).and_then(|v| v.to_str().ok()).ok_or_else(|| {
                 Response::json_error(
                     StatusCode::UNSUPPORTED_MEDIA_TYPE,
                     "Content-Type must be application/x-www-form-urlencoded",

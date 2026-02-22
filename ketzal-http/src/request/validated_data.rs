@@ -17,21 +17,13 @@ impl ValidatedData {
     }
 
     pub fn only<const N: usize>(self, keys: [&str; N]) -> Self {
-        let filtered = self
-            .data
-            .into_iter()
-            .filter(|(k, _)| keys.contains(&k.as_str()))
-            .collect();
+        let filtered = self.data.into_iter().filter(|(k, _)| keys.contains(&k.as_str())).collect();
 
         Self { data: filtered }
     }
 
     pub fn except<const N: usize>(self, keys: [&str; N]) -> Self {
-        let filtered = self
-            .data
-            .into_iter()
-            .filter(|(k, _)| !keys.contains(&k.as_str()))
-            .collect();
+        let filtered = self.data.into_iter().filter(|(k, _)| !keys.contains(&k.as_str())).collect();
 
         Self { data: filtered }
     }

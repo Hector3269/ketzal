@@ -94,7 +94,6 @@ macro_rules! validate_form {
     }};
 }
 
-
 #[macro_export]
 macro_rules! routes_web {
     ($($route:expr);* $(;)?) => {
@@ -107,7 +106,6 @@ macro_rules! routes_web {
         };
     };
 }
-
 
 #[macro_export]
 macro_rules! routes_api {

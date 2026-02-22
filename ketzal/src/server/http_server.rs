@@ -13,11 +13,7 @@ impl Server {
     pub async fn new(config: ServerConfig, kind: RouterKind) -> io::Result<Self> {
         let addr = config.socket_addr();
         let listener = Listener::bind(&addr.to_string()).await?;
-        Ok(Self {
-            config,
-            listener,
-            kind,
-        })
+        Ok(Self { config, listener, kind })
     }
 
     pub async fn web(config: ServerConfig) -> io::Result<Self> {

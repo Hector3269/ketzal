@@ -14,10 +14,9 @@ impl Response {
 
         let mut response = Self::with_body(status, body);
 
-        response.headers.insert(
-            http::header::CONTENT_TYPE,
-            HeaderValue::from_static("application/json"),
-        );
+        response
+            .headers
+            .insert(http::header::CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
         response
     }

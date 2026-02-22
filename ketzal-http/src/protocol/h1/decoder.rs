@@ -45,10 +45,9 @@ where
                 content_length = value.trim().parse().unwrap_or(0);
             }
 
-            if let (Ok(name), Ok(val)) = (
-                http::header::HeaderName::from_bytes(key.as_bytes()),
-                value.trim().parse(),
-            ) {
+            if let (Ok(name), Ok(val)) =
+                (http::header::HeaderName::from_bytes(key.as_bytes()), value.trim().parse())
+            {
                 headers.insert(name, val);
             }
         }
@@ -62,14 +61,7 @@ where
         body.extend_from_slice(&temp[..n]);
     }
 
-    Ok(Some(Request::new(
-        method,
-        path,
-        HashMap::new(),
-        headers,
-        body,
-        HashMap::new(),
-    )))
+    Ok(Some(Request::new(method, path, HashMap::new(), headers, body, HashMap::new())))
 }
 
 fn parse_request_line(request: &str) -> io::Result<(Method, String)> {
@@ -80,13 +72,11 @@ fn parse_request_line(request: &str) -> io::Result<(Method, String)> {
 
     let mut parts = line.split_whitespace();
 
-    let method_str = parts
-        .next()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "Missing method"))?;
+    let method_str =
+        parts.next().ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "Missing method"))?;
 
-    let path = parts
-        .next()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "Missing path"))?;
+    let path =
+        parts.next().ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "Missing path"))?;
 
     let method = Method::from_bytes(method_str.as_bytes())
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "Unsupported HTTP method"))?;

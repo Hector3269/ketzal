@@ -1,5 +1,5 @@
 //! Route Node module
-//! 
+//!
 //! Provides a tree-based route structure for efficient path matching.
 //!
 //! This module is currently under development and uses a linear search approach

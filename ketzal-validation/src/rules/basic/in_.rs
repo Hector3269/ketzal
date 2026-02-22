@@ -8,10 +8,7 @@ pub fn in_val(
     validator: &Validator,
     param: Option<&str>,
 ) -> Result<(), String> {
-    let custom_message = validator
-        .custom_messages
-        .get(&format!("{}.in", field))
-        .map(|s| s.as_str());
+    let custom_message = validator.custom_messages.get(&format!("{field}.in")).map(String::as_str);
     let allowed: Vec<&str> = param.unwrap_or("").split(',').collect();
     if let Some(v) = value {
         let val_str = match v {
@@ -19,9 +16,9 @@ pub fn in_val(
             _ => &v.to_string(),
         };
         if !allowed.contains(&val_str.as_str()) {
-            return Err(custom_message.map(|s| s.to_string()).unwrap_or_else(|| {
-                format!("The field {} must be one of: {:?}", field_name, allowed)
-            }));
+            return Err(custom_message
+                .map(ToString::to_string)
+                .unwrap_or_else(|| format!("The field {field_name} must be one of: {allowed:?}")));
         }
     }
     Ok(())

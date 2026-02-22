@@ -16,12 +16,7 @@ impl Validator {
     pub fn make(data: HashMap<String, Value>, rules: HashMap<&'static str, &'static str>) -> Self {
         let parsed_rules = rules
             .into_iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    v.split('|').map(|s| s.trim().to_string()).collect(),
-                )
-            })
+            .map(|(k, v)| (k.to_string(), v.split('|').map(|s| s.trim().to_string()).collect()))
             .collect();
 
         Self {
@@ -34,17 +29,13 @@ impl Validator {
     }
 
     pub fn set_custom_messages(&mut self, messages: HashMap<&'static str, &'static str>) {
-        self.custom_messages = messages
-            .into_iter()
-            .map(|(k, v)| (k.to_string(), v.to_string()))
-            .collect();
+        self.custom_messages =
+            messages.into_iter().map(|(k, v)| (k.to_string(), v.to_string())).collect();
     }
 
     pub fn set_custom_attributes(&mut self, attributes: HashMap<&'static str, &'static str>) {
-        self.custom_attributes = attributes
-            .into_iter()
-            .map(|(k, v)| (k.to_string(), v.to_string()))
-            .collect();
+        self.custom_attributes =
+            attributes.into_iter().map(|(k, v)| (k.to_string(), v.to_string())).collect();
     }
 
     pub fn validate(&mut self) -> Result<(), ValidationErrors> {
@@ -55,7 +46,8 @@ impl Validator {
             let value = self.data.get(field);
             let field_name = self.custom_attributes.get(field).unwrap_or(field);
 
-            if value.is_none() && rules.contains(&"nullable".into()) {
+            // evitar allocation innecesaria
+            if value.is_none() && rules.iter().any(|r| r == "nullable") {
                 continue;
             }
 
@@ -67,13 +59,8 @@ impl Validator {
                 }
 
                 if let Some(handler) = registry.get(rule_name) {
-                    let result = handler(field, field_name, value, self, param);
-
-                    if let Err(msg) = result {
-                        self.errors
-                            .entry(field.clone())
-                            .or_insert_with(Vec::new)
-                            .push(msg);
+                    if let Err(msg) = handler(field, field_name, value, self, param) {
+                        self.errors.entry(field.clone()).or_default().push(msg);
                     }
                 }
             }
@@ -87,10 +74,6 @@ impl Validator {
     }
 
     pub fn validated_data(self) -> HashMap<String, Value> {
-        self.data
-            .iter()
-            .filter(|(k, _)| self.rules.contains_key(*k))
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect()
+        self.data.into_iter().filter(|(k, _)| self.rules.contains_key(k)).collect()
     }
 }

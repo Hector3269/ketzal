@@ -117,11 +117,7 @@ fn required_if_with_other_rules() {
 
     let mut v = Validator::make(
         data,
-        [(
-            "role",
-            "required_if:type,admin|in:admin,moderator,superadmin",
-        )]
-        .into(),
+        [("role", "required_if:type,admin|in:admin,moderator,superadmin")].into(),
     );
 
     assert!(v.validate().is_ok());

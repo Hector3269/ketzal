@@ -8,15 +8,13 @@ pub fn string(
     validator: &Validator,
     _: Option<&str>,
 ) -> Result<(), String> {
-    let custom_message = validator
-        .custom_messages
-        .get(&format!("{}.string", field))
-        .map(|s| s.as_str());
+    let custom_message =
+        validator.custom_messages.get(&format!("{field}.string")).map(String::as_str);
     if let Some(v) = value {
         if !v.is_string() {
             return Err(custom_message
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| format!("The field {} must be a string.", field_name)));
+                .map(ToString::to_string)
+                .unwrap_or_else(|| format!("The field {field_name} must be a string.")));
         }
     }
     Ok(())

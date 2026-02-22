@@ -8,10 +8,7 @@ pub fn max(
     validator: &Validator,
     param: Option<&str>,
 ) -> Result<(), String> {
-    let custom_message = validator
-        .custom_messages
-        .get(&format!("{}.max", field))
-        .map(|s| s.as_str());
+    let custom_message = validator.custom_messages.get(&format!("{field}.max")).map(String::as_str);
     let max_val = param.unwrap_or("0").parse().unwrap_or(0);
     if let Some(v) = value {
         let size = match v {
@@ -21,11 +18,8 @@ pub fn max(
             _ => 0,
         };
         if size > max_val {
-            return Err(custom_message.map(|s| s.to_string()).unwrap_or_else(|| {
-                format!(
-                    "The field {} may not be greater than {} characters.",
-                    field_name, max_val
-                )
+            return Err(custom_message.map(ToString::to_string).unwrap_or_else(|| {
+                format!("The field {field_name} may not be greater than {max_val} characters.")
             }));
         }
     }

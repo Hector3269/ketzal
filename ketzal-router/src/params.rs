@@ -1,5 +1,5 @@
 //! Params module
-//! 
+//!
 //! Provides the [`Params`] struct for extracting and storing route parameters.
 
 use indexmap::IndexMap;
@@ -17,7 +17,7 @@ use indexmap::IndexMap;
 ///
 /// // Get a specific parameter
 /// let id = params.get("id"); // Some("42")
-/// 
+///
 /// // Get all parameters
 /// for (key, value) in params.all() {
 ///     println!("{}: {}", key, value);

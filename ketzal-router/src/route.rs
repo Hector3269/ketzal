@@ -1,5 +1,5 @@
 //! Route module
-//! 
+//!
 //! Provides the [`Route`] struct for defining HTTP routes.
 
 use crate::handler::{into_boxed, BoxedHandler, Handler, HandlerFuture};
@@ -70,12 +70,7 @@ impl Route {
     /// let route = Route::new(Method::GET, "/", handler);
     /// ```
     pub fn new<M: 'static>(method: Method, path: &str, handler: impl Handler<M>) -> Self {
-        Self {
-            method,
-            path: path.to_string(),
-            handler: Arc::from(into_boxed(handler)),
-            name: None,
-        }
+        Self { method, path: path.to_string(), handler: Arc::from(into_boxed(handler)), name: None }
     }
 
     /// Creates a GET route.

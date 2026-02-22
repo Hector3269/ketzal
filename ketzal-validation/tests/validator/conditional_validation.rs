@@ -13,10 +13,7 @@ fn conditional_required_based_on_field() {
         "description": ""
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("description", "required_if:is_featured,true")].into(),
-    );
+    let mut v = Validator::make(data, [("description", "required_if:is_featured,true")].into());
 
     // Empty string is still considered a value, so passes
     assert!(v.validate().is_ok());
@@ -29,10 +26,7 @@ fn conditional_not_required_when_condition_not_met() {
         "description": ""
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("description", "required_if:is_featured,true")].into(),
-    );
+    let mut v = Validator::make(data, [("description", "required_if:is_featured,true")].into());
 
     assert!(v.validate().is_ok());
 }
@@ -47,11 +41,7 @@ fn multiple_conditional_rules() {
 
     let mut v = Validator::make(
         data,
-        [
-            ("coupon", "required_if:type,premium"),
-            ("level", "required_if:type,premium"),
-        ]
-        .into(),
+        [("coupon", "required_if:type,premium"), ("level", "required_if:type,premium")].into(),
     );
 
     assert!(v.validate().is_ok());
@@ -67,11 +57,7 @@ fn conditional_with_regular_required() {
 
     let mut v = Validator::make(
         data,
-        [
-            ("title", "required"),
-            ("content", "required_if:is_published,true"),
-        ]
-        .into(),
+        [("title", "required"), ("content", "required_if:is_published,true")].into(),
     );
 
     assert!(v.validate().is_ok());
@@ -133,11 +119,7 @@ fn conditional_with_in_rule() {
 
     let mut v = Validator::make(
         data,
-        [(
-            "coupon_code",
-            "required_if:user_type,premium|in:DISCOUNT,SALE2024",
-        )]
-        .into(),
+        [("coupon_code", "required_if:user_type,premium|in:DISCOUNT,SALE2024")].into(),
     );
 
     assert!(v.validate().is_ok());
@@ -153,10 +135,7 @@ fn conditional_with_complex_data() {
         }
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("variant_sku", "required_if:has_variants,true")].into(),
-    );
+    let mut v = Validator::make(data, [("variant_sku", "required_if:has_variants,true")].into());
 
     // Note: This test checks nested JSON - current implementation doesn't support it
     // This will likely pass because the validator doesn't find has_variants at root
@@ -174,11 +153,7 @@ fn multiple_conditional_same_field() {
 
     let mut v = Validator::make(
         data,
-        [(
-            "trial_code",
-            "required_if:account_type,trial|required_if:account_type,promo",
-        )]
-        .into(),
+        [("trial_code", "required_if:account_type,trial|required_if:account_type,promo")].into(),
     );
 
     // Empty string passes because field is present
@@ -192,10 +167,8 @@ fn conditional_with_email_validation() {
         "contact_value": "user@example.com"
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("contact_value", "required_if:contact_method,email|email")].into(),
-    );
+    let mut v =
+        Validator::make(data, [("contact_value", "required_if:contact_method,email|email")].into());
 
     assert!(v.validate().is_ok());
 }
@@ -207,10 +180,8 @@ fn conditional_with_email_invalid() {
         "contact_value": "invalid-email"
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("contact_value", "required_if:contact_method,email|email")].into(),
-    );
+    let mut v =
+        Validator::make(data, [("contact_value", "required_if:contact_method,email|email")].into());
 
     assert!(v.validate().is_err());
 }
@@ -249,10 +220,7 @@ fn conditional_validation_order() {
         "tax_id": "123"
     }));
 
-    let mut v = Validator::make(
-        data,
-        [("tax_id", "required_if:is_business,true|min:5")].into(),
-    );
+    let mut v = Validator::make(data, [("tax_id", "required_if:is_business,true|min:5")].into());
 
     // Fails min:5 but also failed required_if
     let result = v.validate();
@@ -267,10 +235,7 @@ fn conditional_with_array_values() {
     }));
 
     // Array to string comparison
-    let mut v = Validator::make(
-        data,
-        [("featured_order", "required_if:tags,featured")].into(),
-    );
+    let mut v = Validator::make(data, [("featured_order", "required_if:tags,featured")].into());
 
     // This may not work as expected since arrays don't stringify to "featured"
     let result = v.validate();

@@ -9,11 +9,7 @@ pub struct Response {
 
 impl Response {
     pub fn new(status: StatusCode) -> Self {
-        Self {
-            status,
-            headers: HeaderMap::new(),
-            body: Vec::new(),
-        }
+        Self { status, headers: HeaderMap::new(), body: Vec::new() }
     }
 
     pub fn with_body(status: StatusCode, body: impl Into<Vec<u8>>) -> Self {
