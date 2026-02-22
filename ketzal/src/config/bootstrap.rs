@@ -1,4 +1,3 @@
-use crate::routes::registry;
 use crate::server::server::Server;
 use ketzal_http::config::ServerConfig;
 
@@ -19,9 +18,7 @@ impl Bootstrap {
     }
 
     pub async fn create(self) -> std::io::Result<()> {
-        registry::init_router();
-
-        let server = Server::new(self.server_config).await?;
+        let server = Server::web(self.server_config).await?;
         server.run().await
     }
 }

@@ -94,36 +94,30 @@ macro_rules! validate_form {
     }};
 }
 
-// routes
 
-// Route registration macro for web routes
-#[cfg(feature = "web")]
 #[macro_export]
 macro_rules! routes_web {
     ($($route:expr);* $(;)?) => {
-        #[ctor::ctor]
-        fn register_web_routes() {
-            use $crate::routes::registry::register;
-
-            $(
-                register($route);
-            )*
-        }
+        const _: () = {
+            #[::ctor::ctor]
+            fn __register() {
+                use $crate::routes::registry::register_web;
+                $( register_web($route); )*
+            }
+        };
     };
 }
 
-// Route registration macro for API routes
-#[cfg(feature = "api")]
+
 #[macro_export]
 macro_rules! routes_api {
     ($($route:expr);* $(;)?) => {
-        #[ctor::ctor]
-        fn register_api_routes() {
-            use $crate::routes::registry::register;
-
-            $(
-                register($route);
-            )*
-        }
+        const _: () = {
+            #[::ctor::ctor]
+            fn __register() {
+                use $crate::routes::registry::register_api;
+                $( register_api($route); )*
+            }
+        };
     };
 }

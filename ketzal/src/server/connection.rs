@@ -7,11 +7,18 @@ use tokio::net::TcpStream;
 
 pub struct Connection {
     stream: TcpStream,
+    kind: RouterKind,
+}
+
+#[derive(Clone, Copy)]
+pub enum RouterKind {
+    Web,
+    Api,
 }
 
 impl Connection {
-    pub fn new(stream: TcpStream) -> Self {
-        Self { stream }
+    pub fn new(stream: TcpStream, kind: RouterKind) -> Self {
+        Self { stream, kind }
     }
 
     pub async fn handle(&mut self) -> io::Result<()> {
@@ -20,19 +27,18 @@ impl Connection {
             None => return Ok(()),
         };
 
-        let router = registry::get_router();
+        let router = match self.kind {
+            RouterKind::Web => registry::get_web_router(),
+            RouterKind::Api => registry::get_api_router(),
+        };
 
-        let method = request.method.clone();
-        let path = request.path.clone();
-
-        let response = if let Some(handler) = router.handle(method, &path, request) {
-            handler.await
-        } else {
-            Response::not_found()
+        let response = match router.handle(&request.method.clone(), &request.path.clone(), request)
+        {
+            Some(future) => future.await,
+            None => Response::not_found(),
         };
 
         let bytes = h1::encode(&response);
-
         self.stream.write_all(&bytes).await?;
         self.stream.flush().await?;
 

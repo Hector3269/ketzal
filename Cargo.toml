@@ -1,12 +1,12 @@
 [workspace]
 resolver = "2"
 members = [
-    "example/users_web",
-    "ketzal", 
-    "ketzal-http", 
-    "ketzal-router", 
-    "ketzal-validation",
-    
+  "example/users_web",
+  "ketzal",
+  "ketzal-http",
+  "ketzal-router",
+  "ketzal-validation",
+
 ]
 [workspace.package]
 edition = "2021"

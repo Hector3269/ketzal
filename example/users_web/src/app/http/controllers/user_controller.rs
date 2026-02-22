@@ -19,4 +19,8 @@ impl UserController {
 
         Response::json(safe)
     }
+
+    pub async fn show(id: i32) -> Response {
+        Response::ok(format!("Showing user with id: {}", id))
+    }
 }

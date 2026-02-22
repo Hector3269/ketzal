@@ -1,109 +1,161 @@
-use std::future::Future;
-use std::pin::Pin;
+//! Route module
+//! 
+//! Provides the [`Route`] struct for defining HTTP routes.
+
+use crate::handler::{into_boxed, BoxedHandler, Handler, HandlerFuture};
+use crate::params::Params;
+use http::Method;
+use ketzal_http::Request;
 use std::sync::Arc;
 
-use http::Method;
-
-pub type HandlerFuture<Res> = Pin<Box<dyn Future<Output = Res> + Send>>;
-
-pub type Handler<Req, Res> = dyn Fn(Req) -> HandlerFuture<Res> + Send + Sync;
-
+/// Represents a single HTTP route with a handler.
+///
+/// A route consists of:
+/// - HTTP method (GET, POST, PUT, DELETE, PATCH)
+/// - Path pattern (with optional `:param` syntax for dynamic segments)
+/// - Handler function
+/// - Optional name for identification
+///
+/// # Example
+///
+/// ```ignore
+/// use ketzal_router::Route;
+/// use ketzal_http::Response;
+///
+/// async fn hello() -> Response {
+///     Response::ok("Hello!")
+/// }
+///
+/// // Simple route
+/// let route = Route::get("/", hello);
+///
+/// // Route with parameter
+/// async fn greet(name: String) -> Response {
+///     Response::ok(format!("Hello, {}!", name))
+/// }
+/// let route = Route::get("/hello/:name", greet);
+///
+/// // Named route
+/// let route = Route::get("/users/:id", show_user).name("users.show");
+/// ```
 #[derive(Clone)]
-pub struct Route<Req, Res> {
+pub struct Route {
+    /// The HTTP method for this route
     pub method: Method,
-
+    /// The path pattern (e.g., "/users/:id")
     pub path: String,
-
-    pub handler: Arc<Handler<Req, Res>>,
-
+    /// The handler function
+    pub handler: Arc<dyn BoxedHandler>,
+    /// Optional route name for identification
     pub name: Option<String>,
 }
 
-impl<Req, Res> Route<Req, Res>
-where
-    Req: Send + 'static,
-    Res: Send + 'static,
-{
-    fn new<F, Fut>(method: Method, path: &str, handler: F) -> Self
-    where
-        F: Fn(Req) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
-    {
-        let handler = Arc::new(move |req: Req| Box::pin(handler(req)) as HandlerFuture<Res>);
-
+impl Route {
+    /// Creates a new route with the given method, path, and handler.
+    ///
+    /// # Arguments
+    ///
+    /// * `method` - The HTTP method
+    /// * `path` - The path pattern
+    /// * `handler` - The handler function
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use http::Method;
+    /// use ketzal_router::Route;
+    ///
+    /// async fn handler() -> Response { ... }
+    ///
+    /// let route = Route::new(Method::GET, "/", handler);
+    /// ```
+    pub fn new<M: 'static>(method: Method, path: &str, handler: impl Handler<M>) -> Self {
         Self {
             method,
             path: path.to_string(),
-            handler,
+            handler: Arc::from(into_boxed(handler)),
             name: None,
         }
     }
 
-    /// GET route
-    pub fn get<F, Fut>(path: &str, handler: F) -> Self
-    where
-        F: Fn(Req) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
-    {
+    /// Creates a GET route.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// Route::get("/", handler)
+    /// ```
+    pub fn get<M: 'static>(path: &str, handler: impl Handler<M>) -> Self {
         Self::new(Method::GET, path, handler)
     }
 
-    /// POST route
-    pub fn post<F, Fut>(path: &str, handler: F) -> Self
-    where
-        F: Fn(Req) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
-    {
+    /// Creates a POST route.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// Route::post("/users", create_user)
+    /// ```
+    pub fn post<M: 'static>(path: &str, handler: impl Handler<M>) -> Self {
         Self::new(Method::POST, path, handler)
     }
 
-    /// PUT route
-    pub fn put<F, Fut>(path: &str, handler: F) -> Self
-    where
-        F: Fn(Req) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
-    {
+    /// Creates a PUT route.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// Route::put("/users/:id", update_user)
+    /// ```
+    pub fn put<M: 'static>(path: &str, handler: impl Handler<M>) -> Self {
         Self::new(Method::PUT, path, handler)
     }
 
-    /// DELETE route
-    pub fn delete<F, Fut>(path: &str, handler: F) -> Self
-    where
-        F: Fn(Req) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
-    {
+    /// Creates a DELETE route.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// Route::delete("/users/:id", delete_user)
+    /// ```
+    pub fn delete<M: 'static>(path: &str, handler: impl Handler<M>) -> Self {
         Self::new(Method::DELETE, path, handler)
     }
 
-    /// PATCH route
-    pub fn patch<F, Fut>(path: &str, handler: F) -> Self
-    where
-        F: Fn(Req) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
-    {
+    /// Creates a PATCH route.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// Route::patch("/users/:id", patch_user)
+    /// ```
+    pub fn patch<M: 'static>(path: &str, handler: impl Handler<M>) -> Self {
         Self::new(Method::PATCH, path, handler)
     }
 
-    /// OPTIONS route
-    pub fn options<F, Fut>(path: &str, handler: F) -> Self
-    where
-        F: Fn(Req) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
-    {
-        Self::new(Method::OPTIONS, path, handler)
-    }
-
-    /// HEAD route
-    pub fn head<F, Fut>(path: &str, handler: F) -> Self
-    where
-        F: Fn(Req) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
-    {
-        Self::new(Method::HEAD, path, handler)
-    }
-
-     pub fn name(mut self, name: impl Into<String>) -> Self {
+    /// Sets the name of the route.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The route name
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// Route::get("/users/:id", show_user).name("users.show")
+    /// ```
+    pub fn name(mut self, name: impl Into<String>) -> Self {
         self.name = Some(name.into());
         self
+    }
+
+    /// Calls the route handler with the given parameters and request.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The extracted route parameters
+    /// * `req` - The incoming request (if available)
+    pub fn call(&self, params: &Params, req: Option<Request>) -> HandlerFuture {
+        self.handler.call(params, req)
     }
 }
